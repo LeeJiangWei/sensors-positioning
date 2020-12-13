@@ -1,2 +1,5 @@
 .idea
 test*.py
+history/*
+!.gitkeep
+__pycache__
