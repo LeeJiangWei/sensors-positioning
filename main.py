@@ -98,12 +98,12 @@ if __name__ == '__main__':
 
     try:
         while min_fitness > STOP_THRESHOLD:
-            a = population.copy()
-            b = population.copy()
-            c = population.copy()
-            np.random.shuffle(a)
-            np.random.shuffle(b)
-            np.random.shuffle(c)
+            a = np.random.permutation(population)
+            b = np.random.permutation(population)
+            c = np.random.permutation(population)
+
+            # min_index = np.argmin(fitness_vector)
+            # best = np.tile(population[min_index], [NP, 1])
 
             # mutation
             mutant_population = a + F * (b - c)
