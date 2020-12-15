@@ -28,6 +28,19 @@ def initialize_data():
 anchors, sensors = initialize_data()
 
 
+def calculate_full_distance(anchors_positions: np.ndarray, sensors_positions: np.ndarray) -> np.ndarray:
+    n = NUM_ANCHORS + NUM_SENSORS
+    positions = np.concatenate([anchors_positions, sensors_positions])
+    distance_matrix = np.zeros([n, n])
+
+    for x in range(n):
+        for y in range(n):
+            if x != y:
+                distance_matrix[x][y] = np.sqrt(np.sum(np.power(positions[x] - positions[y], 2)))
+
+    return distance_matrix
+
+
 def calculate_partial_distance(anchors_positions: np.ndarray, sensors_positions: np.ndarray) -> np.ndarray:
     distance_matrix = np.zeros([len(anchors_positions), len(sensors_positions)])
     h, w = distance_matrix.shape
@@ -86,6 +99,7 @@ def evaluate_population(population: np.ndarray, judge_matrix: np.ndarray) -> np.
 if __name__ == '__main__':
     true_distance = calculate_partial_distance(anchors, sensors)
     noised_distance = add_noise(true_distance)
+    true_full_distance = calculate_full_distance(anchors, sensors)
 
     population = initialize_population()
     fitness_vector = evaluate_population(population, noised_distance)
@@ -95,9 +109,18 @@ if __name__ == '__main__':
     min_fitness = np.inf
     curr_gen = 0
     history = []
+    real_history = []
 
     try:
         while min_fitness > STOP_THRESHOLD:
+            if curr_gen % 20 == 0:
+                best_individual = population[np.argmin(fitness_vector)]
+                curr_sensors_positions = decode(best_individual)
+                curr_distance_matrix = calculate_full_distance(anchors, curr_sensors_positions)
+                curr_fitness = calculate_avg_distance(curr_distance_matrix, true_full_distance)
+                real_history.append(curr_fitness)
+                print(f"Real fitness: {curr_fitness}")
+
             a = np.random.permutation(population)
             b = np.random.permutation(population)
             c = np.random.permutation(population)
@@ -127,3 +150,4 @@ if __name__ == '__main__':
     finally:
         history = np.array(history)
         np.save(f"./history/NP{NP}CR{CR}F{F}", history)
+        np.save(f"./history/NP{NP}CR{CR}F{F}_real", real_history)
