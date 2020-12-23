@@ -111,6 +111,10 @@ if __name__ == '__main__':
     history = []
     real_history = []
 
+    c = 0.1
+    mu_cr = 0.5
+    mu_f = 0.5
+
     try:
         while min_fitness > STOP_THRESHOLD:
             if curr_gen % 20 == 0:
@@ -127,6 +131,8 @@ if __name__ == '__main__':
 
             # min_index = np.argmin(fitness_vector)
             # best = np.tile(population[min_index], [NP, 1])
+
+            f =
 
             # mutation
             mutant_population = a + F * (b - c)
