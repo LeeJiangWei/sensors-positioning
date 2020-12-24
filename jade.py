@@ -8,7 +8,7 @@ NOISE_FACTOR = 0.2
 LOCATION_RANGE = 100
 
 # configs of algorithm
-NP = 1000  # size of population
+NP = 100  # size of population
 
 F = 0.5  # scale factor of DE
 CR = 0.1  # cross rate
@@ -111,6 +111,10 @@ if __name__ == '__main__':
     history = []
     real_history = []
 
+    cc = 0.1
+    mu_cr = 0.5
+    mu_f = 0.5
+
     try:
         while curr_gen < 1000:
             if curr_gen % 20 == 0:
@@ -128,11 +132,16 @@ if __name__ == '__main__':
             # min_index = np.argmin(fitness_vector)
             # best = np.tile(population[min_index], [NP, 1])
 
+            f = np.random.normal(mu_f, 0.1, NP)
+            cr = np.random.normal(mu_cr, 0.1, NP)
+
+            fm = np.array([f] * D).T
+            crm = np.array([cr] * D).T
             # mutation
-            mutant_population = a + F * (b - c)
+            mutant_population = a + fm * (b - c)
 
             # crossover
-            crossover_mask = np.less(np.random.random([NP, D]), CR)
+            crossover_mask = np.less(np.random.random([NP, D]), crm)
             trial_population = crossover_mask * mutant_population + (1 - crossover_mask) * population
 
             # evaluate and selection
@@ -141,13 +150,18 @@ if __name__ == '__main__':
             population[selection_mask, :] = trial_population[selection_mask, :]
             fitness_vector[selection_mask] = trial_fitness_vector[selection_mask]
 
-            print(f"Generation {curr_gen}: {min_fitness}")
+            print(f"Generation {curr_gen}: {min_fitness}, F: {mu_f}, CR: {mu_cr}")
             curr_gen += 1
             min_fitness = np.min(fitness_vector)
             history.append(min_fitness)
+
+            if selection_mask.any():
+                mu_f = (1 - cc) * mu_f + cc * np.sum(f[selection_mask] ** 2) / np.sum(f[selection_mask])
+                mu_cr = (1 - cc) * mu_cr + cc * np.mean(cr[selection_mask])
+
     except KeyboardInterrupt:
         print("Interrupt by keyboard")
     finally:
         history = np.array(history)
-        np.save(f"./history/NP{NP}CR{CR}F{F}", history)
-        np.save(f"./history/NP{NP}CR{CR}F{F}_real", real_history)
+        np.save(f"./history/NP{NP}CR{CR}F{F}_jade", history)
+        np.save(f"./history/NP{NP}CR{CR}F{F}_real_jade", real_history)
